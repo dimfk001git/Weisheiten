@@ -688,14 +688,16 @@ function loadVoices(){
   const v = pickVoice();
   info.textContent = v ? `Aktiv: ${v.name} (${v.lang})` : (voices.length ? 'Keine deutsche Stimme gefunden – bitte in den Systemeinstellungen nachinstallieren.' : 'Stimmen werden geladen …');
 }
-// iOS gibt Sprachausgabe erst nach einer Berührung frei – beim ersten Tippen stumm „anstoßen“
+// iOS gibt Sprachausgabe erst nach einer Berührung frei – beim ersten Tippen stumm „anstoßen“.
+// Das muss im touchend passieren (pointerdown zählt auf dem iPhone nicht als Berührung und blockiert danach alles).
+// Am PC ist das Anstoßen unnötig und bleibt weg.
 function unlockSpeech(){
-  interacted = true;
   if (unlocked || !canSpeak) return;
   unlocked = true;
   try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch(e){}
 }
-['touchend','pointerdown','click','keydown'].forEach(ev => document.addEventListener(ev, unlockSpeech, {once:true, capture:true}));
+document.addEventListener('touchend', unlockSpeech, {once:true, capture:true});
+['touchend','pointerdown','click','keydown'].forEach(ev => document.addEventListener(ev, () => { interacted = true; }, {once:true, capture:true}));
 // Lange Texte in Sätze teilen: manche Browser brechen sehr lange Einzel-Ansagen ab
 function chunks(text){
   const out = [];
@@ -741,7 +743,7 @@ function speak(text){
   });   // Referenzen halten, sonst bricht Safari manchmal ab
   speaking = true; paintSpeak();
   const run = () => { if (my === speakSeq) utterances.forEach(u => synth.speak(u)); };
-  if (busy) setTimeout(run, 80); else run();
+  if (busy) setTimeout(run, unlocked ? 80 : 250); else run();
 }
 function speakSide(){
   if (!current) return;
