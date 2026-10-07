@@ -105,13 +105,19 @@ mark{background:linear-gradient(transparent 10%, var(--marker) 10%, var(--marker
 .expl.short{text-align:center;font-size:clamp(1.2rem,4.6vw,1.45rem);line-height:1.4;text-wrap:balance}
 .expl.none{color:var(--muted);text-align:center;font-style:italic}
 .kap{font-size:.78rem;color:var(--muted);text-align:center}
-.card-foot{display:flex;justify-content:center;align-items:center;gap:6px;color:var(--muted);font-size:.8rem;padding-top:2px}
+.card-foot{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;align-items:center;gap:6px;color:var(--muted);font-size:.8rem;min-height:42px}
+.card-foot .hint{grid-column:2;display:flex;justify-content:center;align-items:center;gap:6px;text-align:center}
 .card-foot svg{width:14px;height:14px;flex:none}
+.speak{grid-column:3;border:0;background:var(--primary);color:var(--on-primary);width:42px;height:42px;border-radius:50%;display:grid;place-items:center;padding:0}
+.speak svg{width:20px;height:20px}
+.speak.on{background:var(--no)}
 .stamp{position:absolute;top:22px;font-weight:700;font-size:1.3rem;padding:4px 12px;border:3px solid;border-radius:10px;opacity:0;pointer-events:none;background:var(--paper)}
-.stamp.no{right:20px;color:var(--no);transform:rotate(8deg)}
-.stamp.yes{left:20px;color:var(--yes);transform:rotate(-8deg)}
-.stamp.half{left:50%;top:auto;bottom:24px;transform:translateX(-50%);color:var(--half)}
-.stamp.skip{left:50%;transform:translateX(-50%);color:var(--skip);white-space:nowrap}
+.stamp{white-space:nowrap}
+.stamp.d-left{right:20px;transform:rotate(8deg)}
+.stamp.d-right{left:20px;transform:rotate(-8deg)}
+.stamp.d-up{left:50%;top:auto;bottom:64px;transform:translateX(-50%)}
+.stamp.d-down{left:50%;transform:translateX(-50%)}
+.stamp.r-no{color:var(--no)}.stamp.r-yes{color:var(--yes)}.stamp.r-half{color:var(--half)}.stamp.r-skip{color:var(--skip)}
 .done{width:100%;background:var(--paper);border-radius:20px;padding:28px 24px;text-align:center;display:flex;flex-direction:column;gap:14px;justify-content:center;box-shadow:0 18px 40px var(--shadow)}
 .done h2{font-family:var(--display);font-size:1.9rem;margin:0}
 .done p{margin:0;color:var(--muted)}
@@ -173,6 +179,9 @@ textarea{resize:vertical;min-height:84px}
 .set label{font-weight:700}
 .set small{display:block;font-weight:400;color:var(--muted);font-size:.83rem;margin-top:2px}
 .set select{max-width:54vw}
+.voice{display:flex;gap:6px;align-items:center;min-width:0}
+.voice select{max-width:38vw}
+input[type=range]{accent-color:var(--primary);max-width:40vw}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px 14px;margin-top:6px}
 .cats label{display:flex;gap:8px;align-items:center}
 .cats .meta{margin:0}
@@ -215,7 +224,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--primary);flex:non
       </div>
       <div class="scope"><button id="scope-info" hidden></button></div>
       <div class="stage">
-        <div class="card" id="card" tabindex="0" role="button" aria-label="Karte umdrehen"></div>
+        <div class="card" id="card" tabindex="0" role="group" aria-label="Lernkarte"></div>
         <div class="done" id="done" hidden></div>
       </div>
       <div class="rate" id="rate">
@@ -274,15 +283,33 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--primary);flex:non
         <div class="set"><label for="s-order">Reihenfolge neuer Ratschläge</label>
           <select id="s-order"><option value="random">Zufällig</option><option value="list">Nach Nummer</option></select></div>
 
+        <h3>Vorlesen</h3>
+        <div class="set"><label for="s-auto">Automatisch vorlesen<small>Vorne den Ratschlag, nach dem Umdrehen die Erläuterung. Aus: nur beim Tippen auf den Lautsprecher.</small></label>
+          <input type="checkbox" id="s-auto"></div>
+        <div class="set"><label for="s-rate">Sprechtempo <small id="s-rate-val"></small></label>
+          <input type="range" id="s-rate" min="0.6" max="1.4" step="0.05"></div>
+        <div class="set"><label for="s-voice">Stimme<small id="voice-info">Suche deutsche Stimme …</small></label>
+          <div class="voice"><select id="s-voice"></select><button class="btn" id="voice-test">Testen</button></div></div>
+        <p class="meta" style="margin-top:8px">iPhone: Der Stummschalter muss aus sein, sonst bleibt das Vorlesen stumm. Weitere deutsche Stimmen gibt es unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Deutsch.</p>
+
+        <h3>Wischrichtungen</h3>
+        <p class="meta">Was passiert, wenn du die Karte in eine Richtung schiebst. Die Pfeiltasten am Computer folgen derselben Belegung.</p>
+        <div class="set"><label for="sw-left">← Nach links</label><select id="sw-left" data-dir="left"></select></div>
+        <div class="set"><label for="sw-right">→ Nach rechts</label><select id="sw-right" data-dir="right"></select></div>
+        <div class="set"><label for="sw-up">↑ Nach oben</label><select id="sw-up" data-dir="up"></select></div>
+        <div class="set"><label for="sw-down">↓ Nach unten</label><select id="sw-down" data-dir="down"></select></div>
+        <p class="meta" style="margin-top:8px">Ist der Text länger als die Karte, scrollt Wischen nach oben und unten den Text. Bewertet wird dann seitlich oder mit den Tasten unter der Karte.</p>
+        <div class="tools"><button class="btn" id="sw-reset">Standardbelegung wiederherstellen</button></div>
+
         <h3>Kategorien zum Lernen</h3>
         <div class="tools"><button class="btn" id="cats-all">Alle</button><button class="btn" id="cats-none">Keine</button><span class="meta" id="cats-meta" style="margin:0"></span></div>
         <div class="cats" id="cats"></div>
 
         <h3>So funktioniert es</h3>
         <div class="note">
-          <p>Vorne stehen Ratschlag und Aktion. <b>Antippen</b> dreht die Karte um und zeigt die Erläuterung.</p>
-          <p><b>Kurz schieben</b> (←): kommt am Ende der Runde noch einmal. <b>Lange schieben</b> (↑): wieder in 3 Tagen, danach in wachsenden Abständen. <b>Sitzt</b> (→): wieder in 30 Tagen, danach deutlich später. <b>Brauch ich nicht</b> (↓): wird ausgeblendet und lässt sich in der Liste zurückholen.</p>
-          <p>Statt der Tasten kannst du die Karte wischen. Am Computer: Pfeiltasten oder 1–4 zum Bewerten, Eingabe- oder Leertaste zum Umdrehen, Z für Rückgängig. Bei langen Erläuterungen scrollt die Karte nach oben und unten, bewertet wird dann seitlich oder mit den Tasten.</p>
+          <p>Vorne stehen Ratschlag und Aktion. <b>Antippen</b> dreht die Karte um und zeigt die Erläuterung. Der <b>Lautsprecher</b> liest vorne den Ratschlag und hinten die Erläuterung vor; noch einmal tippen stoppt.</p>
+          <p><b>Kurz schieben</b>: kommt am Ende der Runde noch einmal. <b>Lange schieben</b>: wieder in 3 Tagen, danach in wachsenden Abständen. <b>Sitzt</b>: wieder in 30 Tagen, danach deutlich später. <b>Brauch ich nicht</b>: wird ausgeblendet und lässt sich in der Liste zurückholen.</p>
+          <p>Statt der Tasten kannst du die Karte wischen; die Pfeile auf den Tasten zeigen die Richtung. Am Computer: Pfeiltasten oder 1–4 zum Bewerten, Eingabetaste zum Umdrehen, Leertaste zum Vorlesen, Z für Rückgängig.</p>
         </div>
 
         <h3>Daten</h3>
@@ -317,7 +344,19 @@ const MIN = 60e3, DAY = 864e5;
 const NOCAT = 'Ohne Kategorie', OWN = 'Eigene';
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const defaults = () => ({onlyAction:false, newPer:10, order:'random', cats:null});
+const DIRS = ['left','right','up','down'], RATES = ['skip','no','half','yes'];
+const ARROW = {left:'←', right:'→', up:'↑', down:'↓'};
+const RATE_LABEL = {no:'Kurz schieben', half:'Lange schieben', yes:'Sitzt', skip:'Brauch ich nicht', none:'Nichts'};
+const STAMP = {no:'Kurz', half:'Lange', yes:'Sitzt', skip:'Brauch ich nicht'};
+const defaults = () => ({onlyAction:false, newPer:10, order:'random', cats:null, autoSpeak:false, rate:1, voiceName:'', swipe:{left:'no', right:'yes', up:'half', down:'skip'}});
+function cleanSettings(s){
+  const d = defaults(); s = s && typeof s === 'object' ? s : {};
+  const sw = s.swipe && typeof s.swipe === 'object' ? s.swipe : {};
+  return {onlyAction:!!s.onlyAction, newPer:Math.max(1, Math.min(200, parseInt(s.newPer) || d.newPer)), order:s.order==='list' ? 'list' : 'random',
+    cats:Array.isArray(s.cats) ? s.cats.map(String) : null, autoSpeak:!!s.autoSpeak, rate:Math.max(.6, Math.min(1.4, +s.rate || 1)),
+    voiceName:typeof s.voiceName === 'string' ? s.voiceName : '',
+    swipe:Object.fromEntries(DIRS.map(k => [k, RATES.includes(sw[k]) || sw[k]==='none' ? sw[k] : d.swipe[k]]))};
+}
 
 const CATS = [], ENTRIES = [], BYID = new Map();
 function addEntry(e){
@@ -335,7 +374,7 @@ sortCats();
 function load(){
   try {
     const s = JSON.parse(localStorage.getItem(KEY));
-    if (s && s.cards) return {cards:s.cards, custom:s.custom||[], log:s.log||{}, settings:Object.assign(defaults(), s.settings||{}), settingsAt:s.settingsAt||0, resetAt:s.resetAt||0};
+    if (s && s.cards) return {cards:s.cards, custom:s.custom||[], log:s.log||{}, settings:cleanSettings(s.settings), settingsAt:s.settingsAt||0, resetAt:s.resetAt||0};
   } catch(e){}
   return {cards:{}, custom:[], log:{}, settings:defaults(), settingsAt:0, resetAt:0};
 }
@@ -433,6 +472,9 @@ function updateCounts(){
   b.hidden = !st; b.textContent = `Auswahl: ${st}`;
 }
 
+const SPEAKER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+const STOP = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
+const arrowsFor = r => DIRS.filter(d => S().swipe[d]===r).map(d => ARROW[d]).join('');
 const FLIP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/></svg>';
 const cardEl = $('#card'), doneEl = $('#done');
 
@@ -441,19 +483,22 @@ function showCard(){
   updateCounts();
   if (!queue.length){ current = null; renderDone(); return; }
   const id = queue[0];
-  if (!current || current.id !== id){ current = {id}; flipped = false; }
+  const fresh1 = !current || current.id !== id;
+  if (fresh1){ current = {id}; flipped = false; }
   doneEl.hidden = true; cardEl.hidden = false;
   $('#rate').querySelectorAll('button').forEach(b => b.disabled = false);
   renderCard();
   cardEl.style.transition = 'none'; cardEl.style.transform = ''; cardEl.style.opacity = '';
   cardEl.classList.remove('enter'); void cardEl.offsetWidth; cardEl.classList.add('enter');
   requestAnimationFrame(() => cardEl.style.transition = '');
-  ['skip','no','half','yes'].forEach(r => $('#pv-'+r).textContent = `${{skip:'↓',no:'←',half:'↑',yes:'→'}[r]} ${preview(id, r)}`);
+  RATES.forEach(r => $('#pv-'+r).textContent = `${arrowsFor(r)} ${preview(id, r)}`.trim());
+  if (fresh1){ if (S().autoSpeak && interacted) speakSide(); else stopSpeak(); }
 }
 function renderCard(){
   const v = BYID.get(current.id);
   const top = `<div class="card-top"><span class="nr">${v.nr ? 'Nr. ' + esc(v.nr) : 'Eigener Ratschlag'}</span><span class="chip">${esc(v.cat)}</span></div>`;
-  const stamps = `<div class="stamp yes">Sitzt</div><div class="stamp no">Kurz</div><div class="stamp half">Lange</div><div class="stamp skip">Brauch ich nicht</div>`;
+  const stamps = DIRS.map(d => RATES.includes(S().swipe[d]) ? `<div class="stamp d-${d} r-${S().swipe[d]}" data-d="${d}">${STAMP[S().swipe[d]]}</div>` : '').join('');
+  const spk = canSpeak ? `<button class="speak${speaking ? ' on' : ''}" data-speak aria-label="${speaking ? 'Vorlesen stoppen' : 'Vorlesen'}">${speaking ? STOP : SPEAKER}</button>` : '';
   let body, foot;
   if (!flipped){
     const size = v.rat.length > 80 ? ' l' : v.rat.length > 45 ? ' m' : '';
@@ -467,8 +512,8 @@ function renderCard(){
       (v.kap ? `<div class="kap">${esc(v.kap)}</div>` : '');
     foot = 'Antippen für die Vorderseite';
   }
-  cardEl.innerHTML = `<div class="face ${flipped ? 'back' : 'front'}">${top}<div class="scroll"><div class="content">${body}</div></div><div class="card-foot">${FLIP}<span>${foot}</span></div>${stamps}</div>`;
-  cardEl.setAttribute('aria-label', flipped ? 'Erläuterung – antippen für die Vorderseite' : 'Ratschlag – antippen für die Erläuterung');
+  cardEl.innerHTML = `<div class="face ${flipped ? 'back' : 'front'}">${top}<div class="scroll"><div class="content">${body}</div></div><div class="card-foot"><span class="hint">${FLIP}<span>${foot}</span></span>${spk}</div>${stamps}</div>`;
+  cardEl.setAttribute('aria-label', flipped ? 'Lernkarte, Rückseite mit Erläuterung' : 'Lernkarte, Vorderseite mit Ratschlag');
   fitCard();
 }
 function fitCard(){
@@ -485,11 +530,12 @@ const calm = () => window.matchMedia && matchMedia('(prefers-reduced-motion: red
 function flip(){
   if (!current || flipping) return;
   const face = cardEl.querySelector('.face');
-  if (calm() || !face || !face.animate){ flipped = !flipped; renderCard(); return; }
+  const said = () => { if (flipped && S().autoSpeak) speakSide(); else stopSpeak(); };
+  if (calm() || !face || !face.animate){ flipped = !flipped; renderCard(); said(); return; }
   flipping = true;
   const out = face.animate([{transform:'rotateY(0deg)'}, {transform:'rotateY(90deg)'}], {duration:110, easing:'ease-in', fill:'forwards'});
   const turn = () => {
-    flipped = !flipped; renderCard();
+    flipped = !flipped; renderCard(); said();
     const f2 = cardEl.querySelector('.face');
     const back = f2.animate([{transform:'rotateY(-90deg)'}, {transform:'rotateY(0deg)'}], {duration:130, easing:'ease-out'});
     back.onfinish = back.oncancel = () => { flipping = false; };
@@ -497,8 +543,9 @@ function flip(){
   out.onfinish = turn; out.oncancel = () => { flipping = false; };
 }
 function renderDone(){
-  cardEl.hidden = true; doneEl.hidden = false;
+  cardEl.hidden = true; doneEl.hidden = false; stopSpeak();
   $('#rate').querySelectorAll('button').forEach(b => b.disabled = true);
+  RATES.forEach(r => $('#pv-'+r).textContent = arrowsFor(r));
   const total = sess.yes + sess.half + sess.no + sess.skip;
   const now = Date.now(), p = pool();
   const nextDue = p.map(v => state.cards[v.id]).filter(c => c && c.seen && c.due > now).map(c => c.due).sort((a,b) => a-b)[0];
@@ -539,9 +586,11 @@ function rate(r){
   current = null;
   save(); showCard();
 }
-function fly(r){
-  if (!current || flipping) return;
-  const dx = {no:-1, yes:1, half:0, skip:0}[r], dy = {half:-1, skip:1}[r] || 0;
+function fly(r, dir){
+  if (!current || flipping || !RATES.includes(r)) return;
+  dir = dir || DIRS.find(d => S().swipe[d]===r) || {no:'left', yes:'right', half:'up', skip:'down'}[r];
+  const dx = {left:-1, right:1}[dir] || 0, dy = {up:-1, down:1}[dir] || 0;
+  stopSpeak();
   cardEl.style.transition = 'transform .22s ease, opacity .22s ease';
   cardEl.style.transform = `translate(${dx*120}%, ${dy*80}%) rotate(${dx*14}deg)`;
   cardEl.style.opacity = '0';
@@ -559,10 +608,10 @@ function doUndo(){
 (function swipe(){
   let sx = 0, sy = 0, dx = 0, dy = 0, pid = null;
   const T = 90;
-  const stamps = () => ({yes:cardEl.querySelector('.stamp.yes'), no:cardEl.querySelector('.stamp.no'), half:cardEl.querySelector('.stamp.half'), skip:cardEl.querySelector('.stamp.skip')});
-  const clear = () => { cardEl.style.transform = ''; Object.values(stamps()).forEach(s => s && (s.style.opacity = 0)); };
+  const stamps = () => [...cardEl.querySelectorAll('.stamp')];
+  const clear = () => { cardEl.style.transform = ''; stamps().forEach(s => s.style.opacity = 0); };
   cardEl.addEventListener('pointerdown', e => {
-    if (!current || flipping || (e.pointerType==='mouse' && e.button !== 0)) return;
+    if (!current || flipping || e.target.closest('button, a') || (e.pointerType==='mouse' && e.button !== 0)) return;
     pid = e.pointerId; sx = e.clientX; sy = e.clientY; dx = dy = 0;
     try { cardEl.setPointerCapture(pid); } catch(err){}
     cardEl.style.transition = 'none';
@@ -571,23 +620,19 @@ function doUndo(){
     if (e.pointerId !== pid) return;
     dx = e.clientX - sx; dy = e.clientY - sy;
     cardEl.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx/22}deg)`;
-    const st = stamps(), horiz = Math.abs(dx) > Math.abs(dy);
-    if (st.yes){
-      st.yes.style.opacity = horiz ? Math.max(0, Math.min(1, dx/T)) : 0;
-      st.no.style.opacity = horiz ? Math.max(0, Math.min(1, -dx/T)) : 0;
-      st.half.style.opacity = !horiz ? Math.max(0, Math.min(1, -dy/T)) : 0;
-      st.skip.style.opacity = !horiz ? Math.max(0, Math.min(1, dy/T)) : 0;
-    }
+    const horiz = Math.abs(dx) > Math.abs(dy);
+    const pull = {right:horiz ? dx : 0, left:horiz ? -dx : 0, up:horiz ? 0 : -dy, down:horiz ? 0 : dy};
+    stamps().forEach(s => s.style.opacity = Math.max(0, Math.min(1, pull[s.dataset.d]/T)));
   });
   cardEl.addEventListener('pointerup', e => {
     if (e.pointerId !== pid) return;
     pid = null;
-    let r = null;
-    if (Math.abs(dx) > Math.abs(dy)){ if (dx > T) r = 'yes'; else if (dx < -T) r = 'no'; }
-    else if (dy < -T) r = 'half';
-    else if (dy > T) r = 'skip';
+    let dir = null;
+    if (Math.abs(dx) > Math.abs(dy)){ if (dx > T) dir = 'right'; else if (dx < -T) dir = 'left'; }
+    else if (dy < -T) dir = 'up';
+    else if (dy > T) dir = 'down';
     cardEl.style.transition = '';
-    if (r){ fly(r); return; }
+    if (dir && RATES.includes(S().swipe[dir])){ fly(S().swipe[dir], dir); return; }
     clear();
     if (Math.abs(dx) < 6 && Math.abs(dy) < 6) flip();
   });
@@ -597,6 +642,7 @@ function doUndo(){
   });
 })();
 $('#rate').addEventListener('click', e => { const b = e.target.closest('button[data-r]'); if (b && !b.disabled){ if (e.detail) b.blur(); fly(b.dataset.r); } });
+cardEl.addEventListener('click', e => { if (e.target.closest('[data-speak]')) toggleSpeak(); });
 $('#undo').onclick = doUndo;
 $('#scope-info').onclick = () => go('settings');
 $('#add-new').onclick = () => {
@@ -610,13 +656,101 @@ document.addEventListener('keydown', e => {
   if (!$('#view-learn').classList.contains('active') || e.target.matches('input,select,textarea') || e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.target.closest('button') && (e.key===' ' || e.key==='Enter')) return;
   const k = e.key;
-  if (k==='ArrowDown' || k==='1'){ e.preventDefault(); fly('skip'); }
-  else if (k==='ArrowLeft' || k==='2'){ e.preventDefault(); fly('no'); }
-  else if (k==='ArrowUp' || k==='3'){ e.preventDefault(); fly('half'); }
-  else if (k==='ArrowRight' || k==='4'){ e.preventDefault(); fly('yes'); }
-  else if (k===' ' || k==='Enter'){ e.preventDefault(); flip(); }
+  const dir = {ArrowLeft:'left', ArrowRight:'right', ArrowUp:'up', ArrowDown:'down'}[k];
+  if (dir){ e.preventDefault(); fly(S().swipe[dir], dir); }
+  else if (k >= '1' && k <= '4'){ e.preventDefault(); fly(RATES[+k - 1]); }
+  else if (k==='Enter'){ e.preventDefault(); flip(); }
+  else if (k===' '){ e.preventDefault(); toggleSpeak(); }
   else if (k==='z' || k==='Backspace'){ doUndo(); }
 });
+
+/* =========================================================
+   Vorlesen (Web Speech API, deutsche Stimme des Geräts)
+   ========================================================= */
+const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+let voices = [], utterances = [], speaking = false, speakSeq = 0, unlocked = false, interacted = false;
+const NOVELTY = /^(eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley|oma|opa|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|albert|fred|junior|ralph|kathy)\b/i;
+const deVoices = () => voices.filter(v => /^de([-_]|$)/i.test(v.lang));
+function pickVoice(){
+  const de = deVoices();
+  if (S().voiceName){ const m = de.find(v => v.name===S().voiceName); if (m) return m; }
+  const good = de.filter(v => !NOVELTY.test(v.name)), list = good.length ? good : de;
+  const best = l => l.find(v => /premium|enhanced|erweitert|siri|natural/i.test(v.name)) || l.find(v => v.localService) || l[0];
+  return best(list.filter(v => v.lang.replace('_','-').toLowerCase()==='de-de')) || best(list) || null;
+}
+function loadVoices(){
+  const info = $('#voice-info'), sel = $('#s-voice');
+  if (!canSpeak){ info.textContent = 'Dieser Browser kann nicht vorlesen.'; sel.disabled = $('#voice-test').disabled = $('#s-auto').disabled = $('#s-rate').disabled = true; return; }
+  voices = speechSynthesis.getVoices();
+  const de = deVoices();
+  sel.innerHTML = '<option value="">Automatisch</option>' + de.map(v => `<option value="${esc(v.name)}">${esc(v.name)} (${esc(v.lang)})</option>`).join('');
+  sel.value = de.some(v => v.name===S().voiceName) ? S().voiceName : '';
+  const v = pickVoice();
+  info.textContent = v ? `Aktiv: ${v.name} (${v.lang})` : (voices.length ? 'Keine deutsche Stimme gefunden – bitte in den Systemeinstellungen nachinstallieren.' : 'Stimmen werden geladen …');
+}
+// iOS gibt Sprachausgabe erst nach einer Berührung frei – beim ersten Tippen stumm „anstoßen“
+function unlockSpeech(){
+  interacted = true;
+  if (unlocked || !canSpeak) return;
+  unlocked = true;
+  try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch(e){}
+}
+['touchend','pointerdown','click','keydown'].forEach(ev => document.addEventListener(ev, unlockSpeech, {once:true, capture:true}));
+// Lange Texte in Sätze teilen: manche Browser brechen sehr lange Einzel-Ansagen ab
+function chunks(text){
+  const out = [];
+  text.replace(/\s*=>\s*/g, ', ').replace(/…/g, ' ').replace(/\s*\/\s*/g, ', ').split(/\n+/).forEach(line => {
+    line = line.replace(/\s+/g, ' ').replace(/^[-–•]\s*/, '').trim(); if (!line) return;
+    let cur = '';
+    (line.match(/[^.!?]+[.!?]+[)"“”«»']*\s*|[^.!?]+$/g) || [line]).forEach(part => {
+      if (cur && (cur + part).length > 220){ out.push(cur.trim()); cur = ''; }
+      cur += part;
+    });
+    if (cur.trim()) out.push(cur.trim());
+  });
+  return out;
+}
+function paintSpeak(){
+  const b = cardEl.querySelector('[data-speak]'); if (!b) return;
+  b.classList.toggle('on', speaking); b.innerHTML = speaking ? STOP : SPEAKER;
+  b.setAttribute('aria-label', speaking ? 'Vorlesen stoppen' : 'Vorlesen');
+}
+function stopSpeak(){
+  speakSeq++;
+  if (canSpeak && (speaking || speechSynthesis.speaking || speechSynthesis.pending)) try { speechSynthesis.cancel(); } catch(e){}
+  if (speaking){ speaking = false; paintSpeak(); }
+}
+function speak(text){
+  if (!canSpeak){ toast('Vorlesen wird von diesem Browser nicht unterstützt.'); return; }
+  const synth = speechSynthesis, parts = chunks(text);
+  if (!parts.length) return;
+  if (!voices.length) voices = synth.getVoices();
+  const busy = synth.speaking || synth.pending;
+  if (busy) synth.cancel();
+  if (synth.paused) synth.resume();
+  const my = ++speakSeq, v = pickVoice();
+  const end = () => { if (my === speakSeq){ speaking = false; paintSpeak(); } };
+  utterances = parts.map((t, i) => {
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = v ? v.lang.replace('_','-') : 'de-DE';
+    if (v) try { u.voice = v; } catch(e){}
+    u.rate = S().rate; u.volume = 1; u.pitch = 1;
+    if (i === parts.length - 1) u.onend = end;
+    u.onerror = e => { if (my !== speakSeq) return; end(); if (!['interrupted','canceled'].includes(e.error)) toast(`Vorlesen fehlgeschlagen (${e.error}). Stummschalter und Lautstärke prüfen.`); };
+    return u;
+  });   // Referenzen halten, sonst bricht Safari manchmal ab
+  speaking = true; paintSpeak();
+  const run = () => { if (my === speakSeq) utterances.forEach(u => synth.speak(u)); };
+  if (busy) setTimeout(run, 80); else run();
+}
+function speakSide(){
+  if (!current) return;
+  const v = BYID.get(current.id);
+  speak(flipped ? (v.erl || v.rat) : v.rat);
+}
+function toggleSpeak(){ if (speaking) stopSpeak(); else speakSide(); }
+if (canSpeak) speechSynthesis.onvoiceschanged = loadVoices;
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') stopSpeak(); });
 
 /* =========================================================
    Liste, Export & Import
@@ -829,9 +963,19 @@ function fillCats(){
 function fillSettings(){
   const s = S();
   $('#s-scope').value = s.onlyAction ? 'akt' : 'all'; $('#s-new').value = s.newPer; $('#s-order').value = s.order;
-  fillCats(); renderSync();
+  $('#s-auto').checked = s.autoSpeak; $('#s-rate').value = s.rate; $('#s-rate-val').textContent = `${Math.round(s.rate*100)} %`;
+  DIRS.forEach(d => { const el = $('#sw-'+d); el.innerHTML = [...['no','half','yes','skip'], 'none'].map(r => `<option value="${r}">${RATE_LABEL[r]}</option>`).join(''); el.value = s.swipe[d]; });
+  fillCats(); renderSync(); loadVoices();
 }
-const changed = () => { state.settingsAt = Date.now(); save(); dirty = true; };
+const touched = () => { state.settingsAt = Date.now(); save(); };
+const changed = () => { touched(); dirty = true; };
+$('#s-auto').addEventListener('change', e => { S().autoSpeak = e.target.checked; touched(); });
+$('#s-rate').addEventListener('input', e => { S().rate = parseFloat(e.target.value) || 1; $('#s-rate-val').textContent = `${Math.round(S().rate*100)} %`; });
+$('#s-rate').addEventListener('change', touched);
+$('#s-voice').addEventListener('change', e => { S().voiceName = e.target.value; touched(); loadVoices(); });
+$('#voice-test').onclick = () => speak('Trenne das Ereignis von deiner Interpretation.');
+DIRS.forEach(d => $('#sw-'+d).addEventListener('change', e => { S().swipe[d] = e.target.value; touched(); }));
+$('#sw-reset').onclick = () => { S().swipe = defaults().swipe; touched(); fillSettings(); toast('Standardbelegung wiederhergestellt.'); };
 $('#s-scope').addEventListener('change', e => { S().onlyAction = e.target.value==='akt'; changed(); fillCats(); });
 $('#s-new').addEventListener('change', e => { S().newPer = Math.max(1, Math.min(200, parseInt(e.target.value) || 10)); e.target.value = S().newPer; changed(); });
 $('#s-order').addEventListener('change', e => { S().order = e.target.value; changed(); });
@@ -874,8 +1018,7 @@ function mergeRemote(r){
   });
   sortCats();
   if ((+r.settingsAt||0) > (state.settingsAt||0) && r.settings && typeof r.settings === 'object'){
-    const s = Object.assign(defaults(), r.settings);
-    state.settings = {onlyAction:!!s.onlyAction, newPer:Math.max(1, Math.min(200, parseInt(s.newPer) || 10)), order:s.order==='list' ? 'list' : 'random', cats:Array.isArray(s.cats) ? s.cats.map(String) : null};
+    state.settings = cleanSettings(r.settings);
     state.settingsAt = +r.settingsAt;
   }
   return JSON.stringify(syncBody()) !== before;
@@ -956,12 +1099,13 @@ document.addEventListener('visibilitychange', () => {
 function go(view){
   document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-selected', b.dataset.view===view));
   document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id==='view-'+view));
+  if (view !== 'learn') stopSpeak();
   if (view==='learn'){ if (dirty) buildQueue(); else showCard(); }
   if (view==='list'){ fillCats(); renderList(); }
   if (view==='stats') renderStats();
   if (view==='settings') fillSettings();
 }
-document.querySelector('nav').addEventListener('click', e => { const b = e.target.closest('button'); if (b) go(b.dataset.view); });
+document.querySelector('nav').addEventListener('click', e => { const b = e.target.closest('button'); if (b){ if (e.detail) b.blur(); go(b.dataset.view); } });
 let toastT;
 function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3200); }
 fillSettings();
